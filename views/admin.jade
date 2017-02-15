@@ -1,0 +1,44 @@
+extends layout
+block container
+    .row
+        .col-md-12
+            form(method="post" action="/admin")
+                table.table
+                    thead
+                        tr
+                            th SLUG
+                            th Name
+                            th Stock
+                            th Price
+                            th Min.
+                            th Max.
+                    tbody
+                        each beer in beers
+                            tr
+                                td= beer.slug
+                                td
+                                    input(name="name[#{beer.slug}]" value=beer.name)
+                                td
+                                    input(name="stock[#{beer.slug}]" value=beer.stock)
+                                td
+                                    input(name="price[#{beer.slug}]" value=beer.price)
+                                td
+                                    input(name="min[#{beer.slug}]" value=beer.min)
+                                td
+                                    input(name="max[#{beer.slug}]" value=beer.max)
+                        tr
+                            td
+                                input(name="slug[NEW]")
+                            td
+                                input(name="name[NEW]")
+                            td
+                                input(name="stock[NEW]")
+                            td
+                                input(name="price[NEW]")
+                            td
+                                input(name="min[NEW]")
+                            td
+                                input(name="max[NEW]")
+                button.btn-primary.btn(type="submit") Save
+
+
