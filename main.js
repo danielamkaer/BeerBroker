@@ -10,9 +10,7 @@ var CONFIG = {
 };
 
 
-var sequelize = new Sequelize('beer','','', { dialect: 'sqlite', storage: 'database.sqlite' });
-
-var Beer = sequelize.define('beer', {
+var sequelize = new Sequelize('beer','','', { dialect: 'sqlite', storage: 'database.sqlite' }); var Beer = sequelize.define('beer', {
     name: {
         type: Sequelize.STRING
     },
@@ -31,6 +29,15 @@ var Beer = sequelize.define('beer', {
     max: {
         type: Sequelize.FLOAT
     },
+});
+
+var Order = sequelize.define('order', {
+    items: {
+        type: Sequelize.STRING
+    },
+    totalPrice: {
+        type: Sequelize.FLOAT
+    }
 });
 
 app.use(express.static('public'));
@@ -54,9 +61,11 @@ function getLast(dataSet, n) {
 }
 
 
-// io.on('connection', function(socket) {
-//     socket.emit('beers', beers);
-// });
+io.on('connection', function(socket) {
+    Beer.findAll().then((beers) => {
+        socket.emit('beers', beers);
+    });
+});
 
 app.get('/', function (req, res) {
     Beer.findAll().then((beers) => {
@@ -66,23 +75,41 @@ app.get('/', function (req, res) {
     });
 });
 
-app.post('/admin', function (req, res) {
+app.get('/order', function (req, res) {
     Beer.findAll().then((beers) => {
+        res.render('order', {
+            beers: beers,    
+        });
+    });
+});
+
+app.post('/admin', function (req, res) {
+    var promises = [];
+    promises.push(Beer.findAll().then((beers) => {
         beers.forEach((beer) => {
             beer.name = req.body["name"][beer.slug];
             beer.stock = req.body["stock"][beer.slug];
             beer.price = req.body["price"][beer.slug];
             beer.min = req.body["min"][beer.slug];
             beer.max = req.body["max"][beer.slug];
-            beer.save()
+            promises.push(beer.save());
         });
-    });
+    }));
 
-    if (res.body["slug"]["NEW"] != "") {
-
+    if (req.body["slug"]["NEW"] != "") {
+        promises.push(Beer.create({
+            name: req.body["name"]["NEW"],
+            slug: req.body["slug"]["NEW"],
+            stock: req.body["stock"]["NEW"],
+            price: req.body["price"]["NEW"],
+            min: req.body["min"]["NEW"],
+            max: req.body["max"]["NEW"],
+        }));
     }
 
-    res.send('OK');
+    Promise.all(promises).then(() => {
+        res.redirect('/admin');
+    });
 });
 
 app.get('/admin', function (req, res) {

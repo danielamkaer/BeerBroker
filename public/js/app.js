@@ -29,6 +29,7 @@ var graphs = { };
 socket.on('beers', function(msg) {
     for (var key in msg) {
         var beer = msg[key];
+        console.log(beer);
         graphs[beer] = new BeerGraph('#' + beer.slug, beer.name);
     }
 });
