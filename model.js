@@ -22,13 +22,13 @@ var Beer = sequelize.define('beer', {
     },
 });
 
-var BeerPrice = sequelize.define('beer_price', {
+var Price = sequelize.define('price', {
     price: {
         type: Sequelize.FLOAT
     }
 });
-BeerPrice.belongsTo(Beer);
-Beer.hasMany(BeerPrice);
+Price.belongsTo(Beer);
+Beer.hasMany(Price);
 
 var Order = sequelize.define('order', {
     totalPrice: {
@@ -50,8 +50,8 @@ Order.belongsToMany(Beer, {through:OrderBeer});
 
 module.exports = {
     Beer: Beer,
-    BeerPrice: BeerPrice,
+    Price: Price,
     Order: Order,
     OrderBeer: OrderBeer,
-    syncAll: () => { return Promise.all([Beer.sync(), BeerPrice.sync(), Order.sync(), OrderBeer.sync()]); }
+    syncAll: () => { return Promise.all([Beer.sync(), Price.sync(), Order.sync(), OrderBeer.sync()]); }
 };
