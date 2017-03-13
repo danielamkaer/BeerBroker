@@ -11,8 +11,11 @@ block container
                             .col-sm-4
                                 .beer(onclick="addBeer(#{beer.id});",id=beer.slug)
                                     h4.name= beer.name
-                                    h5.price.
-                                        Price: !{beer.price}
+                                    h5.
+                                        Price: <span class="price"></span>
+                    .price-lock-overlay
+                        a.btn.btn-primary.btn-lg(onclick="newOrder()").
+                            New order
         .col-sm-4
             .panel.panel-primary
                 .panel-heading.
@@ -21,12 +24,23 @@ block container
                     thead
                         tr
                             th.
+                                Q.
+                            th.
                                 Product
                             th.
-                                Quantity
-                            th.
                                 Price
+                    tbody
+                    tfoot
+                        tr
+                            th.
                             th.
                                 Total
+                            th.total-price
+
+                .panel-footer
+                    a.btn.btn-success.
+                        Create Order
+
+
 block script
     script(src="/js/order.js")

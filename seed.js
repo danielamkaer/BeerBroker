@@ -1,5 +1,6 @@
 ﻿var Model = require('./model');
 var randgen = require('randgen');
+var _ = require('underscore');
 module.exports = async () => {
     await Promise.all([
         Model.Beer.create({
@@ -62,9 +63,9 @@ module.exports = async () => {
     for (var key in beers) {
         var beer = beers[key];
         var price = beer.price;
-        for (var i = 0; i < 100; i++) {
+        await Promise.all(_.range(100).map(() => {
             price = price + randgen.rnorm();
-            await beer.createPrice({ price: price });
-        }
+            return beer.createPrice({ price: price });
+        }));
     }
 };

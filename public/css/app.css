@@ -1,6 +1,9 @@
 .panel {
     margin-top: 20px;
 }
+.panel-body {
+    position:relative;
+}
 .beer {
     border: 2px solid #ccc;
     border-radius: 5px;
@@ -18,3 +21,19 @@
     font-size: 12px;
 }
 
+.price-lock-overlay {
+    background: rgba(240,240,240,0.8);
+    height: 100%;
+    width: 100%;
+    top: 0;
+    left: 0;
+    position: absolute;
+}
+
+.price-lock-overlay a.btn {
+    top: 50%;
+    left:50%;
+    margin-left:-41px;
+    margin-top:-12px;
+    position:relative;
+}
