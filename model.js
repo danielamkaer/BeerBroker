@@ -53,5 +53,5 @@ module.exports = {
     Price: Price,
     Order: Order,
     OrderBeer: OrderBeer,
-    syncAll: () => { return Promise.all([Beer.sync(), Price.sync(), Order.sync(), OrderBeer.sync()]); }
+    syncAll: async () => { await Promise.all([Beer.sync(), Price.sync(), Order.sync(), OrderBeer.sync()]); }
 };

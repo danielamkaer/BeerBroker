@@ -1,7 +1,32 @@
 extends layout
 block container
     .row
-
-        each beer in beers
-            .col-md-4
-                p= beer.name
+        .col-sm-8
+            .panel.panel-primary
+                .panel-heading.
+                    Products
+                .panel-body
+                    .row
+                        each beer in beers
+                            .col-sm-4
+                                .beer(onclick="addBeer(#{beer.id});",id=beer.slug)
+                                    h4.name= beer.name
+                                    h5.price.
+                                        Price: !{beer.price}
+        .col-sm-4
+            .panel.panel-primary
+                .panel-heading.
+                    Cart
+                table.table#cart
+                    thead
+                        tr
+                            th.
+                                Product
+                            th.
+                                Quantity
+                            th.
+                                Price
+                            th.
+                                Total
+block script
+    script(src="/js/order.js")

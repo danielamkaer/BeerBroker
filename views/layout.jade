@@ -4,10 +4,11 @@ html(lang="en")
         title BeerBroker
         link(rel="stylesheet", href="/node_modules/bootstrap/dist/css/bootstrap.css")
         link(rel="stylesheet", href="/node_modules/chartist/dist/chartist.css")
+        link(rel="stylesheet", href="/css/app.css")
     body
 
         #container.container-fluid
             block container
         script(src="/node_modules/chartist/dist/chartist.js")
         script(src="/socket.io/socket.io.js")
-        script(src="/js/app.js")
+        block script

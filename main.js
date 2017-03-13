@@ -12,37 +12,28 @@ app.use(bodyParser.urlencoded({extended:true}));
 app.use('/node_modules', express.static('node_modules'));
 app.set('view engine', 'jade');
 
-function getLast(dataSet, n) {
-    if (n === undefined) n = 10;
-    var out = {};
-
-    for (var key in dataSet) {
-        out[key] = dataSet[key].slice(-n);
-    }
-    return out;
-}
-
-
-io.on('connection', function(socket) {
-    Model.Beer.findAll({ include: [Model.Price] }).then((beers) => {
-        socket.emit('beers', beers);
-    });
+io.on('connection', async (socket) => {
+    var beers = await Model.Beer.findAll({ include: [Model.Price] });
+    socket.emit('beers', beers);
 });
 
-setInterval(() => {
-    Model.Beer.findAll({ include: [Model.Price] }).then((beers) => {
-        for (var k in beers) {
-            var beer = beers[k];
-            var lastPrice = beer.prices[beer.prices.length - 1].price;
-            beer.createPrice({ price: lastPrice + randgen.rnorm(0, 5) });
-        }
-    }).then(() => {
-        Model.Beer.findAll({ include: [Model.Price] }).then((beers) => {
-            beers.forEach((v) => { v.prices = v.prices.slice(-10); });
-            io.emit('data_updated', beers);
-        });
-    });
-}, 5000);
+/*setInterval(async () => {
+    var beers = await Model.Beer.findAll({ include: [Model.Price] });
+    io.emit('beers', beers);
+}, 1000);
+*/
+
+/*setInterval(async () => {
+    var beers = await Model.Beer.findAll({ include: [Model.Price] });
+    for (var k in beers) {
+        var beer = beers[k];
+        var lastPrice = beer.prices[beer.prices.length - 1].price;
+        await beer.createPrice({ price: lastPrice + randgen.rnorm(0, 5) });
+    }
+    beers = await Model.Beer.findAll({ include: [Model.Price] });
+    beers.forEach((v) => { v.prices = v.prices.slice(-10); });
+    io.emit('data_updated', beers);
+}, 5000);*/
 
 require('./controllers/admin')(app);
 require('./controllers/order')(app);
@@ -50,13 +41,15 @@ require('./controllers/graphs')(app);
 
 var SeedDatabase = require('./seed');
 
-Model.syncAll().then(() => {
+async function main() {
+    await Model.syncAll();
+
     var command = process.argv[2];
     if (command === undefined) {
         console.log(Beer);
         console.error('Missing command. Use either listen or bootstrap');
     } else if (command == "bootstrap") {
-        SeedDatabase();
+        await SeedDatabase();
     } else if (command == "listen") {
         http.listen(3000, function () {
             console.log('Listening on port 3000');
@@ -64,4 +57,6 @@ Model.syncAll().then(() => {
     } else {
         console.error("Wrong command.");
     }
-});
+}
+
+main();

@@ -2,15 +2,14 @@
 
 module.exports = function (app) {
 
-    app.get('/admin', function (req, res) {
-        Model.Beer.findAll().then((beers) => {
-            res.render('admin', {
-                beers: beers,    
-            });
+    app.get('/admin', async (req, res) => {
+        var beers = await Model.Beer.findAll();
+        res.render('admin', {
+            beers: beers,    
         });
     });
 
-    app.post('/admin', function (req, res) {
+    app.post('/admin', async (req, res) => {
         var promises = [];
         promises.push(Model.Beer.findAll().then((beers) => {
             beers.forEach((beer) => {
@@ -34,8 +33,7 @@ module.exports = function (app) {
             }));
         }
 
-        Promise.all(promises).then(() => {
-            res.redirect('/admin');
-        });
+        await Promise.all(promises);
+        res.redirect('/admin');
     });
 };
