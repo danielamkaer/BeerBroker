@@ -109,8 +109,31 @@ function removeBeer(id) {
 }
 
 function newOrder() {
-    pricedLocked = true;
+    pricesLocked = true;
     priceLockOverlay.show = false;
+}
+
+function placeOrder() {
+
+    var order = {
+        products: [
+        ]
+    };
+
+    for (var id in cart.items) {
+        var q = cart.items[id];
+        order.products.push({ id: id, quantity: q, price: beers[id].price });
+    }
+
+    console.log(order);
+
+    socket.emit('placeOrder', order, (resp) => {
+        console.log("resp", resp);
+        pricesLocked = false;
+        priceLockOverlay.show = true;
+        cart.clear();
+    });
+
 }
 
 var beers = {};

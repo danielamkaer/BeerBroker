@@ -12,28 +12,27 @@ app.use(bodyParser.urlencoded({extended:true}));
 app.use('/node_modules', express.static('node_modules'));
 app.set('view engine', 'jade');
 
+async function PlaceOrder(msg) {
+    var totalPrice = 0;
+    msg.products.forEach((product) => {
+        totalPrice += product.quantity * product.price;
+    });
+    var beers = await Model.Beer.findAll();
+    var order = await Model.Order.create({ totalPrice: 0 });
+    await Promise.all(msg.products.map((product) => {
+        var beer = beers.find(b => b.id == product.id);
+        return order.addBeer(beer, { quantity: product.quantity, price: product.price });
+    }));
+    
+    return true;
+}
+
 io.on('connection', async (socket) => {
     var beers = await Model.Beer.findAll({ include: [Model.Price] });
     socket.emit('beers', beers);
+    socket.on('placeOrder', async (msg, callback) => { callback(await PlaceOrder(msg)); });
 });
 
-/*setInterval(async () => {
-    var beers = await Model.Beer.findAll({ include: [Model.Price] });
-    io.emit('beers', beers);
-}, 1000);
-*/
-
-/*setInterval(async () => {
-    var beers = await Model.Beer.findAll({ include: [Model.Price] });
-    for (var k in beers) {
-        var beer = beers[k];
-        var lastPrice = beer.prices[beer.prices.length - 1].price;
-        await beer.createPrice({ price: lastPrice + randgen.rnorm(0, 5) });
-    }
-    beers = await Model.Beer.findAll({ include: [Model.Price] });
-    beers.forEach((v) => { v.prices = v.prices.slice(-10); });
-    io.emit('data_updated', beers);
-}, 5000);*/
 
 require('./controllers/admin')(app);
 require('./controllers/order')(app);
