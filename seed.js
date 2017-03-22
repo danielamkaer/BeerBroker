@@ -63,7 +63,7 @@ module.exports = async () => {
     for (var key in beers) {
         var beer = beers[key];
         var price = beer.price;
-        await Promise.all(_.range(100).map(() => {
+        await Promise.all(_.range(1).map(() => {
             price = price + randgen.rnorm();
             return beer.createPrice({ price: price });
         }));

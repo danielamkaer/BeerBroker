@@ -48,10 +48,15 @@ var OrderBeer = sequelize.define('order_beer', {
 Beer.belongsToMany(Order, {through:OrderBeer});
 Order.belongsToMany(Beer, {through:OrderBeer});
 
+function GetBeersWithPrices() {
+    return Beer.findAll({ include:[Price], order: [ ["id","ASC"], [{model:Price}, "id", "ASC"] ] });
+}
+
 module.exports = {
     Beer: Beer,
     Price: Price,
     Order: Order,
     OrderBeer: OrderBeer,
+    GetBeersWithPrices: GetBeersWithPrices,
     syncAll: async () => { await Promise.all([Beer.sync(), Price.sync(), Order.sync(), OrderBeer.sync()]); }
 };

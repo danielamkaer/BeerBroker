@@ -46,3 +46,7 @@ socket.on('beers', (msg) => {
         graphs[beer.slug].update(parsePrices(beer.prices));
     }
 });
+
+async function updatePrices() {
+    socket.emit('updatePrices', {});
+}
