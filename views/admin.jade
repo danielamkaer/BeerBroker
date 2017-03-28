@@ -2,7 +2,7 @@ extends layout
 block container
     .row
         .col-md-12
-            form(method="post" action="/admin")
+            form(method="post",action="/admin")
                 table.table
                     thead
                         tr
@@ -17,15 +17,15 @@ block container
                             tr
                                 td= beer.slug
                                 td
-                                    input(name="name[#{beer.slug}]" value=beer.name)
+                                    input(name="name[#{beer.slug}]",value=beer.name)
                                 td
-                                    input(name="stock[#{beer.slug}]" value=beer.stock)
+                                    input(name="stock[#{beer.slug}]",value=beer.stock)
                                 td
-                                    input(name="price[#{beer.slug}]" value=beer.price)
+                                    input(name="price[#{beer.slug}]",value=beer.buyPrice)
                                 td
-                                    input(name="min[#{beer.slug}]" value=beer.min)
+                                    input(name="min[#{beer.slug}]",value=beer.minPrice)
                                 td
-                                    input(name="max[#{beer.slug}]" value=beer.max)
+                                    input(name="max[#{beer.slug}]",value=beer.maxPrice)
                         tr
                             td
                                 input(name="slug[NEW]")
@@ -40,5 +40,3 @@ block container
                             td
                                 input(name="max[NEW]")
                 button.btn-primary.btn(type="submit") Save
-
-

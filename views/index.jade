@@ -1,11 +1,31 @@
+block vars
+    - var bodyClass = "body-graphs"
 extends layout
 block container
     .row
         each beer in beers
-            .col-md-1
-                p= beer.name
-            .col-md-5
-                div(id=beer.slug, class="ct-chart")
+            //-
+                .col-md-1
+                    p= beer.name
+            .col-md-6
+                .panel.panel-primary
+                    .panel-heading=beer.name
+                    .panel-body
+                        div(id=beer.slug, class="ct-chart")
+                    table.table
+                        tbody
+                            tr
+                                td.b Price
+                                td.price -
+                                td.b Change
+                                td.change-currency -
+                                td.change-percent -
+                                td.b Range
+                                td.range -
+                                td.b Volume
+                                td.volume -
+                        
+
     .row
         .col-md-12
             button.btn.btn-primary(onclick="updatePrices()").

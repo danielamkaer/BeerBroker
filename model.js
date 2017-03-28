@@ -11,14 +11,35 @@ var Beer = sequelize.define('beer', {
     stock: {
         type: Sequelize.INTEGER
     },
+    buyPrice: {
+        type: Sequelize.FLOAT
+    },
+    minPrice: {
+        type: Sequelize.FLOAT
+    },
+    maxPrice: {
+        type: Sequelize.FLOAT
+    },
+    lowest: {
+        type: Sequelize.FLOAT
+    },
+    highest: {
+        type: Sequelize.FLOAT
+    },
+    change: {
+        type: Sequelize.FLOAT
+    },
     price: {
         type: Sequelize.FLOAT
     },
-    min: {
+    previousPrice: {
         type: Sequelize.FLOAT
     },
-    max: {
+    actualPrice: {
         type: Sequelize.FLOAT
+    },
+    sold: {
+        type: Sequelize.INTEGER
     },
 });
 

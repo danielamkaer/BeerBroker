@@ -5,7 +5,9 @@ html(lang="en")
         link(rel="stylesheet", href="/node_modules/bootstrap/dist/css/bootstrap.css")
         link(rel="stylesheet", href="/node_modules/chartist/dist/chartist.css")
         link(rel="stylesheet", href="/css/app.css")
-    body
+        block vars
+            - var bodyClass = ""
+    body(class=bodyClass)
 
         #container.container-fluid
             block container

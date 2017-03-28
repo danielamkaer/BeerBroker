@@ -37,3 +37,36 @@
     margin-top:-12px;
     position:relative;
 }
+
+
+.body-graphs .ct-grids .ct-grid {
+    stroke: #ffff00;
+}
+
+.body-graphs .panel-body, .body-graphs .panel table {
+    background:#114477;
+}
+
+.body-graphs .panel table.table {
+    color: #eee;
+    overflow:hidden;
+    border-top:1px solid #337ab7;
+}
+.body-graphs .panel table td {
+    border: 1px solid #337ab7;
+}
+    .body-graphs .panel table td.b {
+        font-weight: bold;
+    }
+.body-graphs .ct-series .ct-line {
+    stroke:#fff;
+}
+
+
+.body-graphs .ct-labels .ct-label {
+    color:#fff;
+    font-size:12px;
+}
+.body-graphs {
+    background:#003366;
+}

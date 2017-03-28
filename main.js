@@ -12,18 +12,22 @@ app.use(bodyParser.urlencoded({extended:true}));
 app.use('/node_modules', express.static('node_modules'));
 app.set('view engine', 'jade');
 
+function roundPrice(price) {
+    return Math.round(price * 4) / 4;
+}
 
 async function PlaceOrder(msg) {
     var totalPrice = 0;
     msg.products.forEach((product) => {
-        totalPrice += product.quantity * product.price;
+        totalPrice += product.quantity * roundPrice(product.price);
     });
     var beers = await Model.Beer.findAll();
-    var order = await Model.Order.create({ totalPrice: 0 });
-    await Promise.all(msg.products.map((product) => {
+    var order = await Model.Order.create({ totalPrice: totalPrice });
+    await Promise.all([].concat.apply([], msg.products.map((product) => {
         var beer = beers.find(b => b.id == product.id);
-        return order.addBeer(beer, { quantity: product.quantity, price: product.price });
-    }));
+        beer.sold += product.quantity;
+        return [order.addBeer(beer, { quantity: product.quantity, price: roundPrice(product.price) }), beer.save()];
+    })));
 
     return true;
 }
@@ -58,7 +62,7 @@ async function UpdatePrices(msg) {
     var X = [];
     var beerMap = {};
     beers.forEach(() => { X.push(randgen.rnorm(CONFIG.randomMean, CONFIG.randomVar)); });
-    beers.forEach((beer) => { beerMap[beer.id] = { beer: beer, soldSinceLast: 0, soldInTotal: 0, newPrice: beer.prices[beer.prices.length-1].price }});
+    beers.forEach((beer) => { beerMap[beer.id] = { beer: beer, soldSinceLast: 0, newPrice: beer.actualPrice }});
     var mean = X.mean();
     X = X.map(v => v-mean);
 
@@ -77,8 +81,7 @@ async function UpdatePrices(msg) {
     var orders = await Model.Order.findAll({ include: [Model.Beer] });
     orders.forEach((order) => {
         order.beers.forEach((beer) => {
-            beerMap[beer.id].soldInTotal += beer.order_beer.quantity;
-            totalProfit += beer.order_beer.quantity * (beer.order_beer.price - beer.price - CONFIG.C4);
+            totalProfit += beer.order_beer.quantity * (beer.order_beer.price - beer.buyPrice - CONFIG.C4);
         });
     });
 
@@ -87,34 +90,52 @@ async function UpdatePrices(msg) {
     var len = 0;
     for (var id in beerMap) {
         meanSold += beerMap[id].soldSinceLast;
-        meanStock += beerMap[id].beer.stock - beerMap[id].soldInTotal;
+        meanStock += beerMap[id].beer.stock - beerMap[id].beer.sold;
         len += 1;
     }
     meanSold /= len;
     meanStock /= len;
 
     beers.forEach((beer, k) => {
-        var currentStock = beer.stock - beerMap[beer.id].soldInTotal;
-        var currentPrice = beer.prices[beer.prices.length - 1];
+        var currentStock = beer.stock - beerMap[beer.id].beer.sold;
+        var currentPrice = beer.actualPrice;
 
-        var newPrice = currentPrice.price + CONFIG.C1 * (beerMap[beer.id].soldSinceLast - meanSold) + CONFIG.C2 * (currentStock - meanStock);
+        var newPrice = currentPrice + CONFIG.C1 * (beerMap[beer.id].soldSinceLast - meanSold) - CONFIG.C2 * (currentStock - meanStock);
         if (meanSold > 0) {
             newPrice += X[k];
         }
-        newPrice -= CONFIG.C3 * totalProfit/beers.length;
+//        newPrice -= CONFIG.C3 * totalProfit/beers.length;
 
-        if (newPrice < CONFIG.minimumPrice) {
-            newPrice = CONFIG.minimumPrice;
+        if (newPrice < beer.minPrice) {
+            newPrice = beer.minPrice;
         }
 
+        if (newPrice > beer.maxPrice) {
+            newPrice = beer.maxPrice;
+        }
+
+        
         beerMap[beer.id].newPrice = newPrice;
     });
 
     for (var k in beerMap) {
         var beer = beerMap[k];
 
-        console.log("Beer: ",beer.beer.name, " Old Price: ", beer.beer.prices[beer.beer.prices.length-1].price, " New Price: ",beer.newPrice);
-        await beer.beer.createPrice({ price: beer.newPrice });
+        console.log("Beer: ",beer.beer.name, " Old Price: ", beer.beer.price, " New Price: ",beer.newPrice);
+
+        beer.beer.previousPrice = beer.beer.price;
+        beer.beer.actualPrice = beer.newPrice;
+        beer.beer.price = beer.beer.actualPrice - CONFIG.C3 * totalProfit / beers.length;
+        await beer.beer.createPrice({ price: beer.beer.price });
+        beer.beer.change = beer.beer.price - beer.beer.previousPrice;
+        if (beer.beer.price < beer.beer.lowest) {
+            beer.beer.lowest = beer.beer.price;
+        }
+        if (beer.beer.price > beer.beer.highest) {
+            beer.beer.highest = beer.beer.price;
+        }
+        await beer.beer.save();
+        
     }
     console.log("Total Profit: ",totalProfit);
 
