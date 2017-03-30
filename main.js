@@ -16,21 +16,89 @@ function roundPrice(price) {
     return Math.round(price * 4) / 4;
 }
 
+function sleep(time) {
+    return new Promise((resolve) => setTimeout(resolve, time));
+}
+
+function limitRange(x, low, high) {
+    if (x < low) return low;
+    if (x > high) return high;
+    return x;
+}
+
 async function PlaceOrder(msg) {
     var totalPrice = 0;
+    var numSold = 0;
+    var beers = await Model.Beer.findAll();
+    var beerMap = {};
+    beers.forEach((beer) => { beerMap[beer.id] = beer});
     msg.products.forEach((product) => {
         totalPrice += product.quantity * roundPrice(product.price);
+        if (beerMap[product.id].buyPrice > product.price) {
+            numSold += product.quantity;
+        }
     });
-    var beers = await Model.Beer.findAll();
     var order = await Model.Order.create({ totalPrice: totalPrice });
     await Promise.all([].concat.apply([], msg.products.map((product) => {
-        var beer = beers.find(b => b.id == product.id);
+        var beer = beerMap[product.id];
         beer.sold += product.quantity;
         return [order.addBeer(beer, { quantity: product.quantity, price: roundPrice(product.price) }), beer.save()];
     })));
 
+    counter.removeTime(numSold);
+
     return true;
 }
+
+class Countdown {
+    constructor(startTime, j, onExpired) {
+        this.startTime = startTime;
+        this.j = j;
+        this.timer = null;
+        this.timeRemaining = this.startTime;
+        this.onExpired = onExpired;
+    }
+
+    start() {
+        if (this.timer) return;
+        this.timer = setInterval(() => { this.tick(); }, 1000);
+    }
+
+    pause() {
+        if (this.timer) return;
+        clearInterval(this.timer);
+        this.timer = null;
+    }
+
+    stop() {
+        this.pause();
+        this.timeRemaining = this.startTime;
+    }
+
+    checkExpired() {
+        if (this.timeRemaining <= 0) {
+            this.onExpired();
+            this.timeRemaining = this.startTime;
+        }
+    }
+
+    removeTime(n) {
+        this.timeRemaining -= n * this.j;
+        this.checkExpired();
+    }
+
+    tick() {
+        this.timeRemaining -= 1;
+        this.checkExpired();
+        io.emit("time_to_update", { seconds: this.timeRemaining });
+    }
+}
+
+var counter = new Countdown(CONFIG.TimeBetweenUpdates, CONFIG.TimePerProductSold, async () => {
+    await UpdatePrices();
+});
+
+counter.start();
 
 Array.prototype.mean = function() {
     return this.reduce((acc, value) => acc + value/this.length, 0);
@@ -87,32 +155,31 @@ async function UpdatePrices(msg) {
 
     var meanSold = 0;
     var meanStock = 0;
+    var s_min = 10000, s_max = 0;
     var len = 0;
     for (var id in beerMap) {
         meanSold += beerMap[id].soldSinceLast;
-        meanStock += beerMap[id].beer.stock - beerMap[id].beer.sold;
+        s = beerMap[id].beer.stock - beerMap[id].beer.sold;
+        meanStock += s
+        if (s < s_min) s_min = s;
+        if (s > s_max) s_max = s;
         len += 1;
     }
     meanSold /= len;
     meanStock /= len;
+    var spread = s_max - s_min;
+    if (spread == 0) spread = 1;
 
     beers.forEach((beer, k) => {
         var currentStock = beer.stock - beerMap[beer.id].beer.sold;
         var currentPrice = beer.actualPrice;
 
-        var newPrice = currentPrice + CONFIG.C1 * (beerMap[beer.id].soldSinceLast - meanSold) - CONFIG.C2 * (currentStock - meanStock);
+        var newPrice = currentPrice + CONFIG.C1 * (beerMap[beer.id].soldSinceLast - meanSold) - CONFIG.C2 * (currentStock - meanStock)/spread;
         if (meanSold > 0) {
             newPrice += X[k];
         }
 //        newPrice -= CONFIG.C3 * totalProfit/beers.length;
 
-        if (newPrice < beer.minPrice) {
-            newPrice = beer.minPrice;
-        }
-
-        if (newPrice > beer.maxPrice) {
-            newPrice = beer.maxPrice;
-        }
 
         
         beerMap[beer.id].newPrice = newPrice;
@@ -124,8 +191,11 @@ async function UpdatePrices(msg) {
         console.log("Beer: ",beer.beer.name, " Old Price: ", beer.beer.price, " New Price: ",beer.newPrice);
 
         beer.beer.previousPrice = beer.beer.price;
+
+        beer.newPrice = limitRange(beer.newPrice, beer.beer.minPrice, beer.beer.maxPrice);
+
         beer.beer.actualPrice = beer.newPrice;
-        beer.beer.price = beer.beer.actualPrice - CONFIG.C3 * totalProfit / beers.length;
+        beer.beer.price = limitRange(beer.beer.actualPrice - CONFIG.C3 * totalProfit / beers.length, beer.beer.minPrice, beer.beer.maxPrice);
         await beer.beer.createPrice({ price: beer.beer.price });
         beer.beer.change = beer.beer.price - beer.beer.previousPrice;
         if (beer.beer.price < beer.beer.lowest) {

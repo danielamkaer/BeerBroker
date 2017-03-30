@@ -21,6 +21,15 @@
     font-size: 12px;
 }
 
+#clear-order-button {
+    margin-left:10px;
+}
+
+#countdown-timer {
+    color:white;
+    text-align:center;
+}
+
 .price-lock-overlay {
     background: rgba(240,240,240,0.8);
     height: 100%;

@@ -7,7 +7,7 @@ block container
             //-
                 .col-md-1
                     p= beer.name
-            .col-md-6
+            .col-md-3
                 .panel.panel-primary
                     .panel-heading=beer.name
                     .panel-body
@@ -20,10 +20,16 @@ block container
                                 td.b Change
                                 td.change-currency -
                                 td.change-percent -
-                                td.b Range
-                                td.range -
+                            tr
                                 td.b Volume
                                 td.volume -
+                                td.b Range
+                                td.range(colspan=2) -
+        .col-md-3
+            .panel.panel-primary
+                .panel-heading Time to Price Update
+                .panel-body
+                    h1#countdown-timer
                         
 
     .row

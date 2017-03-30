@@ -2,117 +2,41 @@
 var randgen = require('randgen');
 var _ = require('underscore');
 module.exports = async () => {
-    await Promise.all([
-        Model.Beer.create({
-            name: "Tuborg Pilsner",
-            slug: "tuborg",
-            stock: 100,
-            buyPrice: 7.0,
-            minPrice: 4.0,
-            maxPrice: 100.0,
-            price: 10.0,
+    var beerData = [
+        [ "tuborg", "Grøn Tuborg", 150, 5.75, 3.0, 30.0 ],
+        [ "carlsberg", "Carlsberg Pilsner", 120, 5.75, 3.0, 30.0 ],
+        [ "classic", "Tuborg Classic", 180, 6.5, 3.0, 30.0 ],
+        [ "lager", "Carlsberg Lager", 30, 6.5, 3.0, 30.0 ],
+        [ "easter", "Tuborg Påskebryg", 30, 7.75, 4.0, 30.0 ],
+        [ "xmas", "Tuborg Julebryg", 20, 7.75, 4.0, 30.0 ],
+        [ "lottrup1", "Lottrup Golden Button Ale", 15, 12.0, 8.0, 30.0 ],
+        [ "lottrup2", "Lottrup ", 10, 12.0, 8.0, 30.0 ],
+        [ "draft", "Fadøl", 250, 11.0, 6.0, 30.0 ],
+        [ "drink", "Drink", 500, 15.0, 8.0, 35.0 ],
+        [ "shots", "Shots", 500, 3.25, 1.0, 20.0 ],
+    ];
+    await Promise.all(beerData.map(data => {
+        return Model.Beer.create({
+            slug: data[0],
+            name: data[1],
+            stock: data[2],
+            buyPrice: data[3],
+            minPrice: data[4],
+            maxPrice: data[5],
+            price: data[3] + 2.0,
             change: 0.0,
-            lowest: 10.0,
-            highest: 10.0,
+            lowest: data[3] + 2.0,
+            highest: data[3] + 2.0,
             sold: 0,
-            previousPrice: 10.0,
-            actualPrice: 10.0
-        }),
-
-        Model.Beer.create({
-            name: "Carlsberg Pilsner",
-            slug: "carlsberg",
-            stock: 100,
-            buyPrice: 7.0,
-            minPrice: 4.0,
-            maxPrice: 100.0,
-            price: 10.0,
-            change: 0.0,
-            lowest: 10.0,
-            highest: 10.0,
-            sold: 0,
-            previousPrice: 10.0,
-            actualPrice: 10.0
-
-        }),
-
-        Model.Beer.create({
-            name: "Tuborg Classic",
-            slug: "classic",
-            stock: 100,
-            buyPrice: 7.0,
-            minPrice: 4.0,
-            maxPrice: 100.0,
-            price: 10.0,
-            change: 0.0,
-            lowest: 10.0,
-            highest: 10.0,
-            sold: 0,
-            previousPrice: 10.0,
-            actualPrice: 10.0
-
-        }),
-
-        Model.Beer.create({
-            name: "Carlsberg Lager",
-            slug: "lager",
-            stock: 100,
-            buyPrice: 7.0,
-            minPrice: 4.0,
-            maxPrice: 100.0,
-            price: 10.0,
-            change: 0.0,
-            lowest: 10.0,
-            highest: 10.0,
-            sold: 0,
-            previousPrice: 10.0,
-            actualPrice: 10.0
-
-        }),
-
-        Model.Beer.create({
-            name: "Fadøl",
-            slug: "draft",
-            stock: 100,
-            buyPrice: 11.0,
-            minPrice: 4.0,
-            maxPrice: 100.0,
-            price: 10.0,
-            change: 0.0,
-            lowest: 10.0,
-            highest: 10.0,
-            sold: 0,
-            previousPrice: 10.0,
-            actualPrice: 10.0
-
-        }),
-
-        Model.Beer.create({
-            name: "Drink",
-            slug: "drink",
-            stock: 100,
-            buyPrice: 15.0,
-            minPrice: 4.0,
-            maxPrice: 100.0,
-            price: 20.0,
-            change: 0.0,
-            lowest: 20.0,
-            highest: 20.0,
-            sold: 0,
-            previousPrice: 20.0,
-            actualPrice: 15.0
-
-        })
-    ]);
+            previousPrice: data[3] + 2.0,
+            actualPrice: data[3] + 2.0,
+        });
+    }));
 
     var beers = await Model.Beer.findAll();
-
-    for (var key in beers) {
-        var beer = beers[key];
-        var price = beer.price;
-        await Promise.all(_.range(1).map(() => {
-            price = price + randgen.rnorm();
-            return beer.createPrice({ price: price });
-        }));
-    }
+    await Promise.all(beers.map(beer => {
+        return beer.createPrice({
+            price: beer.price
+        });
+    }));
 };

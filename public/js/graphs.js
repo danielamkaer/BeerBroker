@@ -37,6 +37,7 @@ class BeerGraph {
         this.options = {
             lineSmooth: false,
             low: 0,
+            high: 40,
             showPoint: false,
         };
 
@@ -114,6 +115,32 @@ socket.on('beers', (msg) => {
         graphs[beer.slug].range = [beer.lowest, beer.highest];
         graphs[beer.slug].volume = beer.sold;
     }
+});
+
+function formatTime(time) {
+    if (time > 60) {
+        return Math.floor(time / 60) + ' min and ' + time % 60 + ' sec';
+    } else {
+        return time + ' sec';
+    }
+}
+
+class Countdown {
+    constructor(el) {
+        this.el = el;
+    }
+
+    set time(value) {
+        this._time = value;
+        this.el.innerText = formatTime(value);
+    }
+}
+
+var countdown = new Countdown(document.querySelector('#countdown-timer'));
+
+socket.on('time_to_update', (msg) => {
+    console.log(msg);
+    countdown.time = msg.seconds;
 });
 
 async function updatePrices() {

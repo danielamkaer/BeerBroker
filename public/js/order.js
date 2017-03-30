@@ -1,5 +1,9 @@
 var socket = io();
 
+function roundPrice(price) {
+    return Math.round(price * 4) / 4;
+}
+
 var formatter = new Intl.NumberFormat('da-DK', {
     style: 'currency',
     currency: 'DKK',
@@ -21,6 +25,7 @@ class Beer {
     }
 
     set price(value) {
+        value = roundPrice(value);
         this._price = value;
         this.el.querySelector(".price").innerHTML = formatter.format(value);
     }
@@ -100,6 +105,9 @@ class PriceLockOverlay {
 
 var cart = new Cart("#cart");
 
+var createOrderButton = document.querySelector("#create-order-button");
+var clearOrderButton = document.querySelector("#clear-order-button");
+
 function addBeer(id) {
     cart.addItem(id);
 }
@@ -111,6 +119,10 @@ function removeBeer(id) {
 function newOrder() {
     pricesLocked = true;
     priceLockOverlay.show = false;
+}
+
+function clearOrder() {
+    cart.clear();
 }
 
 function placeOrder() {
@@ -127,11 +139,16 @@ function placeOrder() {
 
     console.log(order);
 
+    createOrderButton.disabled = true;
+    clearOrderButton.disabled = true;
+
     socket.emit('placeOrder', order, (resp) => {
         console.log("resp", resp);
         pricesLocked = false;
         priceLockOverlay.show = true;
         cart.clear();
+        createOrderButton.disabled = false;
+        clearOrderButton.disabled = false;
     });
 
 }

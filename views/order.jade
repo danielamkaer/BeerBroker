@@ -38,8 +38,10 @@ block container
                             th.total-price
 
                 .panel-footer
-                    a#create-order-button.btn.btn-success(onclick="placeOrder()").
+                    button#create-order-button.btn.btn-success(onclick="placeOrder()", type="button").
                         Create Order
+                    button#clear-order-button.btn.btn-danger(onclick="clearOrder()", type="button").
+                        Clear
 
 
 block script
