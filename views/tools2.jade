@@ -1,0 +1,42 @@
+extends layout
+block container
+    .row
+        .col-md-6.col-md-offset-3
+            .panel.panel-default
+                .panel-heading Add/Remove time
+                .panel-body
+                    .row
+                        .col-md-8
+                            .form-group
+                                input.form-control#add-remove-time-input(placeholder="Seconds",type="number")
+                        .col-md-4
+                            .form-group
+                                button.btn.btn-success(onclick="disableWhile(this, updateTime, null);") Change
+            .panel.panel-default
+                .panel-heading Update Now
+                .panel-body
+                    .form-group
+                        button.btn.btn-danger(onclick="disableWhile(this, updatePricesNow, null);") Update Prices Now
+            .panel.panel-default
+                .panel-heading Override current price
+                table.table
+                    thead
+                        tr
+                            th Name
+                            th Current Price
+                            th Set Price
+                            th 
+                    tbody
+                        for beer in beers
+                            tr
+                                td=beer.name
+                                td=beer.price
+                                td
+                                    input.form-control(id="price-#{beer.id}")
+                                td
+                                    button.btn.btn-danger(onclick="disableWhile(this, setPrice, #{beer.id});") Set Price
+
+
+
+block script
+    script(src="/js/tools.js")

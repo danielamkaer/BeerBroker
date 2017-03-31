@@ -119,6 +119,9 @@ function removeBeer(id) {
 function newOrder() {
     pricesLocked = true;
     priceLockOverlay.show = false;
+    cart.clear();
+    createOrderButton.disabled = false;
+    clearOrderButton.disabled = false;
 }
 
 function clearOrder() {
@@ -146,9 +149,6 @@ function placeOrder() {
         console.log("resp", resp);
         pricesLocked = false;
         priceLockOverlay.show = true;
-        cart.clear();
-        createOrderButton.disabled = false;
-        clearOrderButton.disabled = false;
     });
 
 }

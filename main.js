@@ -87,6 +87,11 @@ class Countdown {
         this.checkExpired();
     }
 
+    adjustTime(change) {
+        this.timeRemaining += change;
+        this.checkExpired();
+    }
+
     tick() {
         this.timeRemaining -= 1;
         this.checkExpired();
@@ -213,17 +218,35 @@ async function UpdatePrices(msg) {
     io.emit('beers', beers);
 }
 
+async function ManualSetPrice(msg) {
+    var beer = await Model.Beer.findById(msg.id);
+    var diff = beer.actualPrice - beer.price;
+    beer.price = msg.price;
+    beer.actualPrice = msg.price + diff;
+    await beer.save();
+    await beer.createPrice({ price: beer.price });
+    return true;
+}
+
+async function ManualAdjustTime(msg) {
+    counter.adjustTime(msg.change);
+    return true;
+}
+
 io.on('connection', async (socket) => {
     var beers = await Model.GetBeersWithPrices();
     socket.emit('beers', beers);
     socket.on('placeOrder', async (msg, callback) => { callback(await PlaceOrder(msg)); });
-    socket.on('updatePrices', UpdatePrices);
+    socket.on('updatePrices', async (msg, cb) => { cb(await UpdatePrices(msg)); });
+    socket.on('set_price', async (msg, cb) => { cb(await ManualSetPrice(msg)); });
+    socket.on('adjust_time', async (msg, cb) => { cb(await ManualAdjustTime(msg)); });
 });
 
 
 require('./controllers/admin')(app);
 require('./controllers/order')(app);
 require('./controllers/graphs')(app);
+require('./controllers/tools')(app);
 
 var SeedDatabase = require('./seed');
 

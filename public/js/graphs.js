@@ -118,10 +118,14 @@ socket.on('beers', (msg) => {
 });
 
 function formatTime(time) {
-    if (time > 60) {
-        return Math.floor(time / 60) + ' min and ' + time % 60 + ' sec';
+    var m = Math.floor(time / 60);
+    var s = (time % 60);
+    var s_m = m.toString();
+    var s_s = (s < 10) ? '0' + s.toString() : s.toString();
+    if (s % 2 == 0) {
+        return s_m + ":" + s_s;
     } else {
-        return time + ' sec';
+        return s_m + " " + s_s;
     }
 }
 
